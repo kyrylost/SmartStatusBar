@@ -40,4 +40,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "SmartStatusBar"
+include(":sample")
 include(":smartstatusbar")
