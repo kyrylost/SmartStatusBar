@@ -21,6 +21,8 @@ android {
 
     buildTypes {
         release {
+            // Signed with the debug key so that the APK attached to GitHub releases can be installed.
+            signingConfig = signingConfigs.getByName("debug")
             optimization {
                 enable = true
             }

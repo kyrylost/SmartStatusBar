@@ -1,0 +1,55 @@
+name: Release
+
+# Pushing a tag like v0.1.0 publishes that version to Maven Central (see RELEASING.md).
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    # macOS: the iOS and macOS artifacts only build there.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check that the tag matches VERSION_NAME
+        run: |
+          version=$(grep '^VERSION_NAME=' gradle.properties | cut -d= -f2)
+          test "v$version" = "$GITHUB_REF_NAME" || { echo "Tag $GITHUB_REF_NAME does not match VERSION_NAME=$version"; exit 1; }
+      - name: Publish to Maven Central
+        run: ./gradlew :smartstatusbar:publishAndReleaseToMavenCentral --no-configuration-cache --stacktrace
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
+  github-release:
+    # Once the library is out, a GitHub release with the sample APK, so it can be tried without building.
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build the sample APK
+        run: |
+          ./gradlew :sample:assembleRelease --stacktrace
+          cp sample/build/outputs/apk/release/sample-release.apk "smartstatusbar-sample-${GITHUB_REF_NAME#v}.apk"
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The notes are this version's section of CHANGELOG.md.
+          awk -v v="## ${GITHUB_REF_NAME#v}" '$0 == v { on = 1; next } /^## / { on = 0 } on' CHANGELOG.md > notes.md
+          gh release create "$GITHUB_REF_NAME" "smartstatusbar-sample-${GITHUB_REF_NAME#v}.apk" \
+            --title "$GITHUB_REF_NAME" --notes-file notes.md

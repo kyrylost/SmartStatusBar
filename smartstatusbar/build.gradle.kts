@@ -7,6 +7,7 @@ plugins {
     // The multiplatform Android plugin has no lint of its own.
     alias(libs.plugins.android.lint)
     alias(libs.plugins.kotlinCompose)
+    alias(libs.plugins.mavenPublish)
 }
 
 kotlin {
@@ -81,6 +82,39 @@ kotlin {
             implementation(libs.androidx.junit)
             implementation(libs.androidx.compose.ui.test.junit4)
             implementation(libs.androidx.compose.ui.test.manifest)
+        }
+    }
+}
+
+// Group and version come from GROUP and VERSION_NAME in gradle.properties.
+mavenPublishing {
+    publishToMavenCentral()
+    // Maven Central requires signatures; local publishing works without a key.
+    if (providers.gradleProperty("signingInMemoryKey").isPresent) signAllPublications()
+    coordinates(artifactId = "smartstatusbar")
+    pom {
+        name.set("SmartStatusBar")
+        description.set("Automatic light/dark status bar icons for Jetpack Compose and Compose Multiplatform, based on the content underneath.")
+        inceptionYear.set("2026")
+        url.set(providers.gradleProperty("POM_URL"))
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("repo")
+            }
+        }
+        developers {
+            developer {
+                id.set("kyrylost")
+                name.set("Kyrylo Stukalo")
+                url.set("https://github.com/kyrylost")
+            }
+        }
+        scm {
+            url.set(providers.gradleProperty("POM_URL"))
+            connection.set("scm:git:git://github.com/kyrylost/SmartStatusBar.git")
+            developerConnection.set("scm:git:ssh://git@github.com/kyrylost/SmartStatusBar.git")
         }
     }
 }
