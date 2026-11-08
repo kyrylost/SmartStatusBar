@@ -14,7 +14,7 @@ kotlin {
     explicitApi()
 
     android {
-        namespace = "dev.kyrylost.smartstatusbar"
+        namespace = "io.github.kyrylost.smartstatusbar"
         compileSdk = 37
         minSdk = 23
 

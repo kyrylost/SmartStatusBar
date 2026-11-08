@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "dev.kyrylost.smartstatusbar.sample"
+    namespace = "io.github.kyrylost.smartstatusbar.sample"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "dev.kyrylost.smartstatusbar.sample"
+        applicationId = "io.github.kyrylost.smartstatusbar.sample"
         minSdk = 23
         targetSdk = 37
         versionCode = 1
